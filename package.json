@@ -8,6 +8,10 @@
   },
   "author": "Borodin Gregory",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:grihabor/star_battle.git"
+  },
   "dependencies": {
     "knockout": "^3.5.1"
   }
