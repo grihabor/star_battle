@@ -7,10 +7,9 @@
 <div class="game-container disable-dbl-tap-zoom" >
     <div class="cell-grid-container" data-bind="foreach: cells">
         <button data-bind="
-            attr: {class: 'cell ' + ($data).state()},
+            attr: {class: 'cell ' + $data.state() + $data.borders.toString()},
             click: $parent.toggleCellState
 ">
-            <div></div>
         </button>
     </div>
 </div>
