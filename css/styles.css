@@ -17,42 +17,51 @@ HEX: #daebe8
 
 .cell-grid-container {
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    grid-gap: 3px;
+    grid-template-columns: repeat(9, 3px 10fr) 3px;
+    grid-template-rows: repeat(9, 3px 10fr) 3px;
     background-color: #87bdd8;
     padding: 3px;
-    border-radius: 3px;
 }
 
-.cell-border-bottom {
-    border-bottom: 3px solid black;
+.item-corner-solid {
+    background-color: black;
+}
+.item-edge-vertical-solid {
+    background-color: black;
+}
+.item-edge-horizontal-solid {
+    background-color: black;
+}
+.item-corner-none {
+    background-color: #87bdd8;
+}
+.item-edge-vertical-none {
+    background-color: #87bdd8;
+}
+.item-edge-horizontal-none {
+    background-color: #87bdd8;
 }
 
-.cell-border-right {
-    border-right: 3px solid black;
-}
+.item-cell {}
 
-.cell {
-    border-radius: 3px;
+.item-cell div {
     padding-top: 100%;
 }
 
-.cell {
-}
-.state-empty{
+.item-cell-empty div {
     background-color: #daebe8;
 }
-.state-star{
-    background-color: #b7d7e8;
+.item-cell-star div {
+    background-color: #daebe8;
     background-image: url("/images/star.svg");
-    background-size: contain;
+    background-size: 80%;
     background-repeat: no-repeat;
     background-position: center;
 }
-.state-no-star{
-    background-color: #b7d7e8;
+.item-cell-no-star{
+    background-color: #daebe8;
     background-image: url("/images/circle.svg");
-    background-size: 30%;
+    background-size: 20%;
     background-repeat: no-repeat;
     background-position: center;
 }

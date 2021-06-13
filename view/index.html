@@ -5,12 +5,13 @@
 </head>
 <body>
 <div class="game-container disable-dbl-tap-zoom" >
-    <div class="cell-grid-container" data-bind="foreach: cells">
-        <button data-bind="
-            attr: {class: 'cell ' + $data.state() + $data.borders.toString()},
+    <div class="cell-grid-container" data-bind="foreach: {data: grid.items, as: 'item'}">
+        <div data-bind="
+            attr: {class: item.state()},
             click: $parent.toggleCellState
 ">
-        </button>
+            <div></div>
+        </div>
     </div>
 </div>
 <script src="../javascript/bundle.js"></script>
