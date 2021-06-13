@@ -13,6 +13,18 @@
     "url": "git@github.com:grihabor/star_battle.git"
   },
   "dependencies": {
-    "knockout": "^3.5.1"
+    "browserify": "^17.0.0",
+    "commonjs": "0.0.1",
+    "del": "^6.0.0",
+    "errorify": "^0.3.1",
+    "gulp": "^4.0.2",
+    "gulp-typings": "^2.0.4",
+    "knockout": "^3.5.1",
+    "requirejs": "^2.3.6",
+    "run-sequence": "^2.2.1",
+    "tsify": "^5.0.4",
+    "typings": "^2.1.1",
+    "vinyl-source-stream": "^2.0.0",
+    "watchify": "^4.0.0"
   }
 }

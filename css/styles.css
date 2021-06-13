@@ -1,0 +1,50 @@
+/*
+HEX: #cfe0e8
+HEX: #b7d7e8
+HEX: #87bdd8
+HEX: #daebe8
+*/
+
+.disable-dbl-tap-zoom {
+    touch-action: manipulation;
+}
+
+.game-container {
+    width: min(80vw, 80vh);
+    margin: auto;
+    padding-top: calc((100vh - min(80vw, 80vh)) / 2);
+}
+
+.cell-grid-container {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-gap: 3px;
+    background-color: #87bdd8;
+    padding: 3px;
+    border-radius: 3px;
+}
+
+.cell {
+    border-radius: 3px;
+    padding-top: 100%;
+}
+
+.cell {
+}
+.state-empty{
+    background-color: #daebe8;
+}
+.state-star{
+    background-color: #b7d7e8;
+    background-image: url("/images/star.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.state-no-star{
+    background-color: #b7d7e8;
+    background-image: url("/images/circle.svg");
+    background-size: 30%;
+    background-repeat: no-repeat;
+    background-position: center;
+}

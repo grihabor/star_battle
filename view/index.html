@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+<div class="game-container disable-dbl-tap-zoom" >
+    <div class="cell-grid-container" data-bind="foreach: cells">
+        <button data-bind="
+            attr: {class: 'cell ' + ($data).state()},
+            click: $parent.toggleCellState
+">
+            <div></div>
+        </button>
+    </div>
+</div>
+<script src="../javascript/bundle.js"></script>
+</body>
+</html>
