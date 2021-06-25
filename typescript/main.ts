@@ -178,19 +178,40 @@ class Cell {
   }
 }
 
+class Level {
+  i: number;
+  indices: CellGroupsIndices;
+  constructor(i: number, indices: CellGroupsIndices) {
+    let self = this;
+    self.i = i;
+    self.indices = indices;
+  }
+}
+
 class ViewModel {
-  grid: Grid;
+  grid: KnockoutObservable<Grid>;
   toggleCellState: (number) => void;
+  levels: Array<Level>;
+  setLevel: (Level) => void;
   constructor(levelsData: Array<CellGroupsIndices>) {
     let self = this;
-    // load first level for now
+    // load first level on start
     let gridBorders = levelsData[0].toGridBorders();
     let grid = gridBorders.toGrid();
     console.log("initialized grid", grid.items.length);
-    self.grid = grid;
+    self.levels = levelsData.map(function (value, index) {
+      return new Level(index, value);
+    });
+    self.grid = ko.observable(grid);
     self.toggleCellState = function (cell: Cell) {
       console.log("toggle state", cell.state.peek(), cell.i);
       cell.toggleCellState();
+    };
+    self.setLevel = function (level: Level) {
+      console.log("set level", level.i);
+      let gridBorders = level.indices.toGridBorders();
+      let grid = gridBorders.toGrid();
+      self.grid(grid);
     };
   }
 }
@@ -205,6 +226,17 @@ let levelsData = [
     [1, 1, 1, 1, 2, 2, 2, 3, 1],
     [3, 1, 1, 1, 1, 2, 2, 3, 1],
     [3, 3, 3, 1, 1, 1, 2, 3, 1],
+  ]),
+  new CellGroupsIndices([
+    [1, 1, 1, 1, 2, 2, 3, 3, 3],
+    [1, 1, 3, 1, 2, 2, 2, 2, 1],
+    [1, 1, 3, 3, 4, 2, 2, 2, 1],
+    [2, 1, 3, 1, 4, 2, 2, 1, 1],
+    [2, 1, 1, 1, 4, 3, 2, 1, 1],
+    [2, 1, 1, 3, 3, 3, 3, 1, 1],
+    [2, 2, 2, 3, 3, 3, 3, 1, 1],
+    [2, 2, 2, 2, 3, 3, 3, 1, 1],
+    [2, 2, 2, 4, 4, 4, 1, 1, 1],
   ]),
 ];
 ko.applyBindings(new ViewModel(levelsData));

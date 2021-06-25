@@ -1,19 +1,44 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-    <link rel="stylesheet" href="../css/styles.css">
-</head>
-<body>
-<div class="game-container disable-dbl-tap-zoom" >
-    <div class="cell-grid-container" data-bind="foreach: {data: grid.items, as: 'item'}">
-        <div data-bind="
+  <head>
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+  <body>
+    <div class="game-container disable-dbl-tap-zoom">
+      <div
+        class="levels-container"
+        data-bind="foreach: {data: levels, as: 'level'}"
+      >
+        <div data-bind="attr: {class: 'level'}, click: $parent.setLevel">
+          <div data-bind="css: 'level-text'">
+            <svg viewBox="0 0 128 128">
+              <style>
+                .heavy {
+                  font: bold 70px sans-serif;
+                }
+              </style>
+              <text
+                data-bind="attr: {x: '50%', y: '50%', class: 'heavy', 'dominant-baseline': 'middle', 'text-anchor': 'middle'}, text: level.i+1"
+              ></text>
+            </svg>
+          </div>
+          <div class="level-padding"></div>
+        </div>
+      </div>
+      <div
+        class="cell-grid-container"
+        data-bind="foreach: {data: grid().items, as: 'item'}"
+      >
+        <div
+          data-bind="
             attr: {class: item.state()},
             click: $parent.toggleCellState
-">
-            <div></div>
+"
+        >
+          <div></div>
         </div>
+      </div>
     </div>
-</div>
-<script src="../javascript/bundle.js"></script>
-</body>
+    <script src="../javascript/bundle.js"></script>
+  </body>
 </html>
