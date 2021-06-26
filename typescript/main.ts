@@ -6,13 +6,98 @@ enum CellState {
   NoStar = "item-cell item-cell-no-star",
 }
 
+class Matrix<T> {
+  m: Array<Array<T>>;
+  constructor(rows?: Array<Array<T>>) {
+    this.m = rows != null ? rows : [];
+  }
+  iterRows(f: (y: number, x: number, val: T) => void) {
+    for (let y = 0; y < this.m.length; y++) {
+      let row = this.m[y];
+      for (let x = 0; x < row.length; x++) {
+        f(y, x, row[x]);
+      }
+    }
+  }
+}
+
 class CellGroupsIndices {
-  indices: Array<Array<number>>;
-  constructor(indices: Array<Array<number>>) {
+  indices: Matrix<GroupID>;
+  constructor(indices: Matrix<GroupID>) {
     this.indices = indices;
   }
+  toUniqueCellGroupsIndices(): CellGroupsIndices {
+    // clone indices matrix
+    let uniqueIndicesWithDuplicates = new Matrix(
+      this.indices.m.map(function (rows) {
+        return rows.map(function (val) {
+          return val;
+        });
+      })
+    );
+
+    let groupIDDuplicates = new Map<GroupID, GroupID>();
+    this.indices.iterRows((y, x, idx) => {
+      let groupID;
+      if (y == 0) {
+        if (x == 0) {
+          groupID = 0;
+        } else if (this.indices[y][x - 1] != idx) {
+          groupID = uniqueIndicesWithDuplicates.m[y][x - 1] + 1;
+        } else {
+          groupID = uniqueIndicesWithDuplicates.m[y][x - 1];
+        }
+      } else {
+        // decide on group id
+        if (this.indices[y - 1][x] != idx) {
+          groupID = uniqueIndicesWithDuplicates.m[y - 1][x] + 1;
+        } else {
+          groupID = uniqueIndicesWithDuplicates.m[y - 1][x];
+        }
+
+        if (
+          x > 0 &&
+          this.indices[y - 1][x] == idx &&
+          this.indices[y][x - 1] == idx &&
+          uniqueIndicesWithDuplicates.m[y - 1][x] !=
+            uniqueIndicesWithDuplicates.m[y][x - 1]
+        ) {
+          // record the knowledge about the duplicate to merge them later
+          groupIDDuplicates[uniqueIndicesWithDuplicates.m[y - 1][x]] =
+            uniqueIndicesWithDuplicates.m[y][x - 1];
+        }
+      }
+      uniqueIndicesWithDuplicates.m[y][x] = groupID;
+    });
+
+    // drop duplicates
+    let uniqueIndices = uniqueIndicesWithDuplicates.m.map(function (row) {
+      return row.map((value) => {
+        if (value in groupIDDuplicates) {
+          return groupIDDuplicates[value];
+        } else {
+          return value;
+        }
+      });
+    });
+
+    return new CellGroupsIndices(new Matrix<GroupID>(uniqueIndices));
+  }
+
+  toCellGroups(): CellGroups {
+    // we assume that indices are unique
+    let groups = new Map<GroupID, Array<Coords>>();
+    this.indices.iterRows(function (y, x, val) {
+      if (!(val in groups)) {
+        groups[val] = [];
+      }
+      groups[val].push(new Coords(y, x));
+    });
+    return new CellGroups(groups);
+  }
+
   toGridBorders(): GridBorders {
-    let indices = this.indices;
+    let indices = this.indices.m;
     if (indices.length == 0) {
       return new GridBorders([[]]);
     }
@@ -41,6 +126,24 @@ class CellGroupsIndices {
     }
     console.log("borders", borders);
     return new GridBorders(borders);
+  }
+}
+
+type GroupID = number;
+
+class CellGroups {
+  groups: Map<GroupID, Array<Coords>>;
+  constructor(groups: Map<GroupID, Array<Coords>>) {
+    this.groups = groups;
+  }
+}
+
+class Coords {
+  x: number;
+  y: number;
+  constructor(y: number, x: number) {
+    this.x = x;
+    this.y = y;
   }
 }
 
@@ -216,27 +319,31 @@ class ViewModel {
   }
 }
 let levelsData = [
-  new CellGroupsIndices([
-    [1, 1, 1, 2, 2, 2, 2, 2, 2],
-    [1, 3, 3, 2, 2, 2, 2, 2, 2],
-    [3, 3, 3, 3, 1, 1, 1, 1, 3],
-    [3, 3, 3, 3, 3, 1, 1, 1, 3],
-    [1, 3, 3, 3, 3, 3, 3, 1, 3],
-    [1, 1, 3, 3, 2, 2, 2, 1, 1],
-    [1, 1, 1, 1, 2, 2, 2, 3, 1],
-    [3, 1, 1, 1, 1, 2, 2, 3, 1],
-    [3, 3, 3, 1, 1, 1, 2, 3, 1],
-  ]),
-  new CellGroupsIndices([
-    [1, 1, 1, 1, 2, 2, 3, 3, 3],
-    [1, 1, 3, 1, 2, 2, 2, 2, 1],
-    [1, 1, 3, 3, 4, 2, 2, 2, 1],
-    [2, 1, 3, 1, 4, 2, 2, 1, 1],
-    [2, 1, 1, 1, 4, 3, 2, 1, 1],
-    [2, 1, 1, 3, 3, 3, 3, 1, 1],
-    [2, 2, 2, 3, 3, 3, 3, 1, 1],
-    [2, 2, 2, 2, 3, 3, 3, 1, 1],
-    [2, 2, 2, 4, 4, 4, 1, 1, 1],
-  ]),
+  new CellGroupsIndices(
+    new Matrix([
+      [1, 1, 1, 2, 2, 2, 2, 2, 2],
+      [1, 3, 3, 2, 2, 2, 2, 2, 2],
+      [3, 3, 3, 3, 1, 1, 1, 1, 3],
+      [3, 3, 3, 3, 3, 1, 1, 1, 3],
+      [1, 3, 3, 3, 3, 3, 3, 1, 3],
+      [1, 1, 3, 3, 2, 2, 2, 1, 1],
+      [1, 1, 1, 1, 2, 2, 2, 3, 1],
+      [3, 1, 1, 1, 1, 2, 2, 3, 1],
+      [3, 3, 3, 1, 1, 1, 2, 3, 1],
+    ])
+  ),
+  new CellGroupsIndices(
+    new Matrix([
+      [1, 1, 1, 1, 2, 2, 3, 3, 3],
+      [1, 1, 3, 1, 2, 2, 2, 2, 1],
+      [1, 1, 3, 3, 4, 2, 2, 2, 1],
+      [2, 1, 3, 1, 4, 2, 2, 1, 1],
+      [2, 1, 1, 1, 4, 3, 2, 1, 1],
+      [2, 1, 1, 3, 3, 3, 3, 1, 1],
+      [2, 2, 2, 3, 3, 3, 3, 1, 1],
+      [2, 2, 2, 2, 3, 3, 3, 1, 1],
+      [2, 2, 2, 4, 4, 4, 1, 1, 1],
+    ])
+  ),
 ];
 ko.applyBindings(new ViewModel(levelsData));
