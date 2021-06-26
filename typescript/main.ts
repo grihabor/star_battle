@@ -131,10 +131,27 @@ class CellGroupsIndices {
 
 type GroupID = number;
 
+// CellGroups allows the users to answer the following questions:
+// - i have groupID, which cells correspond to it?
+// - i have cell coordinates, which groupID is the cell in?
+//
+// For the first question use groupToCells,
+// for the second one - cellToGroup
 class CellGroups {
-  groups: Map<GroupID, Array<Coords>>;
-  constructor(groups: Map<GroupID, Array<Coords>>) {
-    this.groups = groups;
+  groupToCells: Map<GroupID, Array<Coords>>;
+  cellToGroup: Map<number, Map<number, GroupID>>; // cellToGroup[y][x]
+  constructor(groupsCells: Map<GroupID, Array<Coords>>) {
+    this.groupToCells = groupsCells;
+    let cellToGroup = new Map<number, Map<number, GroupID>>();
+    groupsCells.forEach(function (cells, groupID) {
+      cells.forEach(function (coords) {
+        if (!(coords.y in cellToGroup)) {
+          cellToGroup[coords.y] = new Map();
+        }
+        cellToGroup[coords.y][coords.x] = groupID;
+      });
+    });
+    this.cellToGroup = cellToGroup;
   }
 }
 
@@ -214,7 +231,8 @@ class GridBorders {
   }
   toGrid(): Grid {
     const width = 9;
-    let items = Array();
+    let items = [];
+    let cells = new Matrix<Cell>();
     this.borders.forEach(function (row, y) {
       {
         row.forEach(function (cellBorders, x) {
@@ -232,7 +250,13 @@ class GridBorders {
       {
         row.forEach(function (cellBorders, x) {
           items.push(new VEdge(cellBorders.left));
-          items.push(new Cell(y * width + x));
+          let cell = new Cell(y * width + x, new Coords(y, x));
+          items.push(cell);
+
+          if (y >= cells.m.length) {
+            cells.m.push([]); // new row
+          }
+          cells.m[y].push(cell);
         });
         // vertical border on the right
         items.push(new HEdge(true));
@@ -245,14 +269,16 @@ class GridBorders {
       });
       items.push(new Corner(true));
     }
-    return new Grid(items);
+    return new Grid(items, cells);
   }
 }
 
 class Grid {
   items: Array<GridItem>;
-  constructor(items: Array<GridItem>) {
+  cells: Matrix<Cell>;
+  constructor(items: Array<GridItem>, cells: Matrix<Cell>) {
     this.items = items;
+    this.cells = cells;
   }
 }
 
@@ -260,9 +286,11 @@ class Cell {
   state: KnockoutObservable<CellState>;
   i: number;
   borders: CellBorders;
-  constructor(i: number) {
+  coords: Coords;
+  constructor(i: number, coords: Coords) {
     this.state = ko.observable(CellState.Empty);
     this.i = i;
+    this.coords = coords;
   }
   toggleCellState() {
     let newState: CellState;
@@ -284,10 +312,12 @@ class Cell {
 class Level {
   i: number;
   indices: CellGroupsIndices;
+  isCurrent: KnockoutObservable<boolean>;
   constructor(i: number, indices: CellGroupsIndices) {
     let self = this;
     self.i = i;
     self.indices = indices;
+    self.isCurrent = ko.observable(false);
   }
 }
 
@@ -296,25 +326,42 @@ class ViewModel {
   toggleCellState: (number) => void;
   levels: Array<Level>;
   setLevel: (Level) => void;
+  runGridChecks: () => void;
   constructor(levelsData: Array<CellGroupsIndices>) {
     let self = this;
     // load first level on start
+
     let gridBorders = levelsData[0].toGridBorders();
     let grid = gridBorders.toGrid();
     console.log("initialized grid", grid.items.length);
     self.levels = levelsData.map(function (value, index) {
       return new Level(index, value);
     });
+    self.levels[0].isCurrent(true);
     self.grid = ko.observable(grid);
-    self.toggleCellState = function (cell: Cell) {
-      console.log("toggle state", cell.state.peek(), cell.i);
+    self.toggleCellState = (cell: Cell) => {
+      console.log("toggle state", cell.state(), cell.i);
       cell.toggleCellState();
+      self.runGridChecks();
     };
-    self.setLevel = function (level: Level) {
+    self.setLevel = (level: Level) => {
       console.log("set level", level.i);
       let gridBorders = level.indices.toGridBorders();
       let grid = gridBorders.toGrid();
       self.grid(grid);
+      level.isCurrent(true);
+    };
+    self.runGridChecks = () => {
+      console.log("run grid checks");
+      let cells = self.grid().cells;
+      cells.m.forEach(function (row, y) {
+        let starCount = row.reduce((acc, val) => {
+          return acc + (val.state() == CellState.Star ? 1 : 0);
+        }, 0);
+        if (starCount > 2) {
+          console.log("star count", starCount, y);
+        }
+      });
     };
   }
 }
