@@ -78,19 +78,22 @@ HEX: #daebe8
 }
 
 .item-cell-empty div {
-  background-color: #daebe8;
 }
 .item-cell-star div {
-  background-color: #daebe8;
   background-image: url("/images/star.svg");
   background-size: 80%;
   background-repeat: no-repeat;
   background-position: center;
 }
-.item-cell-no-star {
-  background-color: #daebe8;
+.item-cell-no-star div {
   background-image: url("/images/circle.svg");
   background-size: 20%;
   background-repeat: no-repeat;
   background-position: center;
+}
+.item-cell-highlight-error div {
+  background-color: #f08080;
+}
+.item-cell-no-error div {
+  background-color: #daebe8;
 }
