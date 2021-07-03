@@ -1,4 +1,4 @@
-import {CellGroupsIndices, GroupID, Matrix} from "./lib";
+import {CellGroups, CellGroupsIndices, Coords, GroupID, Matrix} from "../lib";
 
 test('calculates unique indices', () => {
 
@@ -26,4 +26,19 @@ test('calculates unique indices', () => {
         [9, 9, 9, 6, 6, 6, 7, 8, 4],
     ])) 
     expect(unique).toStrictEqual(expected)
+})
+
+test("calculate cell groups", () => {
+    const indices = new CellGroupsIndices(new Matrix<GroupID>([
+        [0, 0, 1],
+        [0, 1, 1],
+        [2, 2, 2]
+    ]))
+    const cellGroups = indices.toCellGroups()
+    const expected = new Map<GroupID, Array<Coords>>([
+        [0, [new Coords(0, 0), new Coords(0, 1), new Coords(1, 0)]],
+        [1, [new Coords(0, 2), new Coords(1, 1), new Coords(1, 2)]],
+        [2, [new Coords(2, 0), new Coords(2, 1), new Coords(2, 2)]],
+    ]);
+    expect(cellGroups.groupToCells).toStrictEqual(expected)
 })

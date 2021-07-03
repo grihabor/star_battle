@@ -125,11 +125,11 @@ export class CellGroupsIndices {
     toCellGroups(): CellGroups {
         // we assume that indices are unique
         let groups = new Map<GroupID, Array<Coords>>();
-        this.indices.iterRows(function (y, x, val) {
-            if (!(val in groups)) {
-                groups[val] = [];
+        this.indices.iterRows(function (y, x, groupID) {
+            if (!groups.has(groupID)) {
+                groups.set(groupID,[]);
             }
-            groups[val].push(new Coords(y, x));
+            groups.get(groupID).push(new Coords(y, x));
         });
         return new CellGroups(groups);
     }
@@ -175,7 +175,7 @@ export type GroupID = number;
 //
 // For the first question use groupToCells,
 // for the second one - cellToGroup
-class CellGroups {
+export class CellGroups {
     groupToCells: Map<GroupID, Array<Coords>>;
     cellToGroup: Map<number, Map<number, GroupID>>; // cellToGroup[y][x]
     constructor(groupsCells: Map<GroupID, Array<Coords>>) {
@@ -193,7 +193,7 @@ class CellGroups {
     }
 }
 
-class Coords {
+export class Coords {
     x: number;
     y: number;
     constructor(y: number, x: number) {
@@ -401,8 +401,7 @@ export class ViewModel {
             level.isCurrent(true);
 
             const uniqueIndices = level.indices.toUniqueCellGroupsIndices()
-            const cellGroups = uniqueIndices.toCellGroups()
-            self.cellGroups = cellGroups
+            self.cellGroups = uniqueIndices.toCellGroups()
         };
 
         self.levels = levelsData.map(function (value, index) {
@@ -444,8 +443,8 @@ export class ViewModel {
                 },
                 cells.column(cell.coords.x),
             );
-            const groupID = self.cellGroups.cellToGroup[cell.coords.y][cell.coords.x]
-            const coords_arr = self.cellGroups.groupToCells[groupID]
+            const groupID = self.cellGroups.cellToGroup.get(cell.coords.y).get(cell.coords.x)
+            const coords_arr = self.cellGroups.groupToCells.get(groupID)
             highlightLineIfThereAreMoreThanTwoStars(
                 (cell: Cell, highlight: boolean) => {
                     return cell.highlight_error_group(highlight);
