@@ -48,6 +48,40 @@ export class Matrix<T> {
       return this.m[coords.y][coords.x];
     });
   }
+
+  square2x2(coords: Coords): T[] {
+    return [
+      this.m[coords.y][coords.x],
+      this.m[coords.y][coords.x + 1],
+      this.m[coords.y + 1][coords.x],
+      this.m[coords.y + 1][coords.x + 1],
+    ];
+  }
+
+  allSquares2x2(coords: Coords): T[][] {
+    const result = [];
+    if (coords.x > 0 && coords.y > 0) {
+      result.push(this.square2x2(new Coords(coords.y - 1, coords.x - 1)));
+    } else {
+      result.push(null);
+    }
+    if (coords.x > 0 && coords.y < this.m.length - 1) {
+      result.push(this.square2x2(new Coords(coords.y, coords.x - 1)));
+    } else {
+      result.push(null);
+    }
+    if (coords.x < this.m[0].length - 1 && coords.y > 0) {
+      result.push(this.square2x2(new Coords(coords.y - 1, coords.x)));
+    } else {
+      result.push(null);
+    }
+    if (coords.x < this.m[0].length - 1 && coords.y < this.m.length - 1) {
+      result.push(this.square2x2(new Coords(coords.y, coords.x)));
+    } else {
+      result.push(null);
+    }
+    return result;
+  }
 }
 
 export class CellGroupsIndices {
@@ -328,6 +362,7 @@ class Cell {
   state: Observable<CellState>;
   highlight_error_row: Observable<boolean>;
   highlight_error_column: Observable<boolean>;
+  highlight_error_square2x2: Observable<boolean>[];
   highlight_error_group: Observable<boolean>;
   highlight_error: Computed<boolean>;
   classes: Computed<string>;
@@ -338,11 +373,18 @@ class Cell {
     this.state = ko.observable(CellState.Empty);
     this.highlight_error_row = ko.observable(false);
     this.highlight_error_column = ko.observable(false);
+    this.highlight_error_square2x2 = Array.from(Array(5).keys()).map(() => {
+      return ko.observable(false);
+    });
     this.highlight_error_group = ko.observable(false);
     this.highlight_error = ko.computed(function () {
       return (
         this.highlight_error_row() ||
         this.highlight_error_column() ||
+        this.highlight_error_square2x2[0]() ||
+        this.highlight_error_square2x2[1]() ||
+        this.highlight_error_square2x2[2]() ||
+        this.highlight_error_square2x2[3]() ||
         this.highlight_error_group()
       );
     }, this);
@@ -421,16 +463,24 @@ export class ViewModel {
     self.runGridChecks = (cell: Cell) => {
       console.log("run grid checks");
 
-      const highlightLineIfThereAreMoreThanTwoStars = (
+      const highlightLineIfThereAreMoreThanNStars = (
         highlight_error: (Cell, boolean) => void,
-        row
+        row,
+        n: number
       ) => {
         let starCount = row.reduce((acc, val) => {
           return acc + (val.state() == CellState.Star ? 1 : 0);
         }, 0);
         row.forEach((cell: Cell): void => {
-          highlight_error(cell, starCount > 2);
+          highlight_error(cell, starCount > n);
         });
+      };
+
+      const highlightLineIfThereAreMoreThanTwoStars = (
+        highlight_error: (Cell, boolean) => void,
+        row
+      ) => {
+        return highlightLineIfThereAreMoreThanNStars(highlight_error, row, 2);
       };
 
       const cells = self.grid().cells;
@@ -447,10 +497,26 @@ export class ViewModel {
         },
         cells.column(cell.coords.x)
       );
+      const squares2x2 = cells.allSquares2x2(cell.coords);
+      console.log("squares", squares2x2);
+      squares2x2.forEach((square2x2, i) => {
+        if (square2x2 === null) {
+          return cell.highlight_error_square2x2[i](false);
+        }
+        highlightLineIfThereAreMoreThanNStars(
+          (cell: Cell, highlight: boolean) => {
+            if (cell.state() != CellState.Star) {
+              highlight = false;
+            }
+            return cell.highlight_error_square2x2[i](highlight);
+          },
+          square2x2,
+          1
+        );
+      });
       const groupID = self.cellGroups.cellToGroup[cell.coords.y][cell.coords.x];
       const coords_arr = self.cellGroups.groupToCells.get(groupID);
       const group = cells.by_coords(coords_arr);
-      console.log(group);
       highlightLineIfThereAreMoreThanTwoStars(
         (cell: Cell, highlight: boolean) => {
           return cell.highlight_error_group(highlight);
