@@ -1,6 +1,5 @@
 .idea/
 node_modules/
-javascript/
 typings
 *.log
 typescript/**/*.js
