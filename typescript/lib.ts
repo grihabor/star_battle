@@ -1,4 +1,5 @@
 import * as ko from "knockout";
+import {Observable, Computed} from "knockout";
 
 enum CellState {
     Empty = "item-cell item-cell-empty",
@@ -321,12 +322,12 @@ class Grid {
 }
 
 class Cell {
-    state: KnockoutObservable<CellState>;
-    highlight_error_row: KnockoutObservable<boolean>;
-    highlight_error_column: KnockoutObservable<boolean>;
-    highlight_error_group: KnockoutObservable<boolean>;
-    highlight_error: KnockoutComputed<boolean>;
-    classes: KnockoutComputed<string>;
+    state: Observable<CellState>;
+    highlight_error_row: Observable<boolean>;
+    highlight_error_column: Observable<boolean>;
+    highlight_error_group: Observable<boolean>;
+    highlight_error: Computed<boolean>;
+    classes: Computed<string>;
     i: number;
     borders: CellBorders;
     coords: Coords;
@@ -373,7 +374,7 @@ class Cell {
 class Level {
     i: number;
     indices: CellGroupsIndices;
-    isCurrent: KnockoutObservable<boolean>;
+    isCurrent: Observable<boolean>;
     constructor(i: number, indices: CellGroupsIndices) {
         let self = this;
         self.i = i;
@@ -384,7 +385,7 @@ class Level {
 
 export class ViewModel {
     cellGroups: CellGroups
-    grid: KnockoutObservable<Grid>;
+    grid: Observable<Grid>;
     toggleCellState: (number) => void;
     levels: Array<Level>;
     setLevel: (Level) => void;
