@@ -5,3 +5,4 @@ typings
 *.log
 typescript/**/*.js
 typescript/**/*.js.map
+screenshots/

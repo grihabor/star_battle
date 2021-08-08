@@ -1,7 +1,11 @@
 import * as ko from "knockout";
 import { CellGroupsIndices, Matrix, ViewModel } from "./lib";
+import { data } from "./data";
 
-const levelsData = [
+const levelsData = data.map((level) => {
+  return new CellGroupsIndices(new Matrix(level));
+});
+const tmp = [
   new CellGroupsIndices(
     new Matrix([
       [1, 1, 1, 2, 2, 2, 2, 2, 2],
