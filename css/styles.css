@@ -45,10 +45,10 @@ HEX: #daebe8
 
 .cell-grid-container {
   display: grid;
-  grid-template-columns: repeat(9, 3px 10fr) 3px;
-  grid-template-rows: repeat(9, 3px 10fr) 3px;
+  grid-template-columns: repeat(9, 4px 10fr) 4px;
+  grid-template-rows: repeat(9, 4px 10fr) 4px;
   background-color: #87bdd8;
-  padding: 3px;
+  padding: 4px;
 }
 
 .item-corner-solid {
