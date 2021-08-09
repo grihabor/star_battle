@@ -12,8 +12,10 @@ BOARD_SIZE = 9
 def take_center_square(img_color):
     img_color = cv.cvtColor(img_color, cv.COLOR_BGR2RGB)
     height, width = img_color.shape[:2]
-    center_vertical = height / 2.
-    y_start, y_end = int(center_vertical - width / 2.), int(center_vertical + width / 2.)
+    center_vertical = height / 2.0
+    y_start, y_end = int(center_vertical - width / 2.0), int(
+        center_vertical + width / 2.0
+    )
     return img_color[y_start:y_end]
 
 
@@ -21,7 +23,9 @@ def remove_margin(img_color):
     margin_color = img_color[5, 5]
 
     epsilon = 5
-    find_first = lambda line: np.argmax(np.sum(np.abs(line - margin_color), axis=1) > epsilon)
+    find_first = lambda line: np.argmax(
+        np.sum(np.abs(line - margin_color), axis=1) > epsilon
+    )
 
     y_line = int(img_color.shape[0] / 2)
     first_line = img_color[y_line, :]
@@ -43,10 +47,7 @@ def get_square_colors(img_color):
     start = int(single_square_width / 4) + margin
     end = int(width - single_square_width / 4)
     step = int(single_square_width)
-    square_colors = img_color[
-                    start:end:step,
-                    start:end:step
-                    ]
+    square_colors = img_color[start:end:step, start:end:step]
     return square_colors
 
 
@@ -56,7 +57,10 @@ def to_hex(img_color):
 
 
 def merge_close_square_colors(square_colors):
-    new_shape = (square_colors.shape[0] * square_colors.shape[1], square_colors.shape[2])
+    new_shape = (
+        square_colors.shape[0] * square_colors.shape[1],
+        square_colors.shape[2],
+    )
     reshaped = np.reshape(square_colors, new_shape)
     unique = np.unique(reshaped, axis=0)
     distance = pairwise_distance(unique)
@@ -68,9 +72,13 @@ def merge_close_square_colors(square_colors):
     for k, v in mapping.items():
         value_to_be_replaced = unique[k]
         new_value = unique[v]
-        print('merge groups', value_to_be_replaced, new_value, file=sys.stderr)
+        print("merge groups", value_to_be_replaced, new_value, file=sys.stderr)
         # print(square_colors, value_to_be_replaced, new_value)
-        np.copyto(square_colors, new_value[np.newaxis, np.newaxis, :], where=square_colors == value_to_be_replaced)
+        np.copyto(
+            square_colors,
+            new_value[np.newaxis, np.newaxis, :],
+            where=square_colors == value_to_be_replaced,
+        )
 
     return square_colors
 
@@ -95,18 +103,25 @@ def parse_screenshot(path):
 
 def main(path):
     if os.path.isfile(path):
-        print(json.dumps(parse_screenshot(path)))
-        return
+        return parse_screenshot(path)
+
+    if not os.path.isdir(path):
+        raise ValueError("path must be dir: {}".format(path))
+
+    subdirs = os.listdir(path)
+    return {subdir: parse_dir(os.path.join(path, subdir)) for subdir in subdirs}
+
+
+def parse_dir(path):
+    if os.path.isfile(path):
+        return parse_screenshot(path)
 
     if not os.path.isdir(path):
         raise ValueError("path must be dir: {}".format(path))
 
     filenames = os.listdir(path)
     paths = sorted([os.path.join(path, filename) for filename in filenames])
-    print(json.dumps([
-        _parse_screenshot(path)
-        for path in paths
-    ]))
+    return [_parse_screenshot(path) for path in paths]
 
 
 def _parse_screenshot(path):
@@ -114,5 +129,5 @@ def _parse_screenshot(path):
     return parse_screenshot(path)
 
 
-if __name__ == '__main__':
-    main(sys.argv[1])
+if __name__ == "__main__":
+    json.dump(main(sys.argv[1]), sys.stdout)
